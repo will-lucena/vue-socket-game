@@ -2,8 +2,7 @@
 import { computed, ref } from 'vue'
 
 /*global io*/
-const socket = io('ws://localhost:3500')
-// const socket = io('https://node-chat-260r.onrender.com')
+const socket = io(import.meta.env.VITE_SERVER_URL)
 const name = ref('')
 const room = ref('')
 const message = ref('')
@@ -12,6 +11,7 @@ const activity = ref('')
 const messages = ref([])
 const activeUsers = ref([])
 const activeRooms = ref([])
+const chatDisplay = ref(null)
 
 function sendMessage(e) {
   e.preventDefault()
@@ -45,7 +45,13 @@ function onKeypress() {
 socket.on('message', (data) => {
   activity.value = ''
   messages.value.push(data)
-  // chatDisplay.scrollTop = chatDisplay.scrollHeight
+
+  const delay = setInterval(() => {
+    chatDisplay.value?.lastElementChild?.scrollIntoView({
+      behavior: 'smooth'
+    })
+    clearInterval(delay)
+  }, 10)
 })
 
 function isMyMessage(chatMessage) {
@@ -113,7 +119,7 @@ const activeRoomsList = computed(() => {
       <button @click="enterRoom">Join</button>
     </form>
 
-    <ul class="chat-display">
+    <ul class="chat-display" ref="chatDisplay">
       <li
         v-for="chatMessage in messages"
         :key="chatMessage.id"
